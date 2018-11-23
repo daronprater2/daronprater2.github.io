@@ -96,27 +96,68 @@ function ready(error, chicagojson, data) {
 
 }
 
+var crime_arr = 0
+var edu_arr = 0
+var shopping_arr = 0
+var nightlife_arr = 0
+var homeprice_arr = 0
+var total_arr = 0
+
 function calculateZipColor(zip) {
     const applicationMode = document.getElementById("mode").value;
     const selectedMetric = document.getElementById("metric").value;
     const yearsAhead = document.getElementById("yearDelta").value;
 
     // make sure we have data for this zip and year
-    if (zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == selectedMetric).length == 0)
-        return 'yellow';
-
-    const filteredRow = zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == selectedMetric)[0];
-    console.log(applicationMode)
-    if (applicationMode == "viewByTotal"){
-      console.log(document.getElementById("crimeRate").value)
+    if (zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == selectedMetric).length == 0){
+      console.log(zip)
+      return 'yellow';
     }
 
-    return zScale(filteredRow.NormalizedValue);
+    const filteredRow = zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == selectedMetric)[0];
+
+    //If statement to calculate view by total colors
+    if (applicationMode == "viewByTotal"){
+      //1. Store each value multiplied by weight
+      //2. Add all values together
+      //3. Divide by some normalizing constant (trial and error)
+      //4. Pass number from 3 into return statement
+
+      console.log(zip)
+
+      //Step 1
+      crime_arr = zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Crime')[0].NormalizedValue * document.getElementById("crimeRate").value
+      edu_arr=zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Education')[0].NormalizedValue * document.getElementById("education").value
+      homeprice_arr=zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Median Home Price')[0].NormalizedValue * document.getElementById("price").value
+
+      //Step 1 - Handling case when zip code + category combo not in dataset
+      //Multiplying value by 0.25 (open to change)
+      if(typeof zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Everyday Shopping')[0] == 'undefined' || typeof zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Nightlife/Social/Entertainment')[0] == 'undefined'){
+        shopping_arr = 0.25 * document.getElementById("shopping").value
+        nighlife_arr= 0.25 * document.getElementById("social").value
+      }else{
+        shopping_arr = zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == 'Everyday Shopping')[0].NormalizedValue * document.getElementById("shopping").value
+        nightlife_arr = zipData[zip].filter(item => item.YearsAhead == yearsAhead && item.Category == "Nightlife/Social/Entertainment")[0].NormalizedValue * document.getElementById("social").value
+      }
+
+      //Step 3. Here normalizing constant is sum of preference values from home screen - 2
+      total_arr = (crime_arr + edu_arr + homeprice_arr + shopping_arr + nightlife_arr) / (parseInt(document.getElementById("crimeRate").value) + parseInt(document.getElementById("education").value) + parseInt(document.getElementById("price").value) + parseInt(document.getElementById("shopping").value) + parseInt(document.getElementById("social").value) - 2)
+
+      //Step 4 - return to color scale
+      return zScale(total_arr)
+
+    }
+    else{
+      return zScale(filteredRow.NormalizedValue);
+    }
+
+
 }
 
 function getTooltipHtml(zip) {
     const yearsAhead = document.getElementById("yearDelta").value;
     const rows = zipData[zip].filter(item => item.YearsAhead == yearsAhead);
+    console.log(rows)
 
     return `
         <div class="tooltip">
