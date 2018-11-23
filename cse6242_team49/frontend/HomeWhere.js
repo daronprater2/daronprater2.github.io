@@ -22,6 +22,7 @@ const zScale = d3.scale.quantile()
 document.getElementById("mode").addEventListener("change", modeChanged);
 document.getElementById("metric").addEventListener("change", metricChanged);
 document.getElementById("yearDelta").addEventListener("input", yearChanged);
+document.getElementById("refresh").addEventListener("click", updateMap);
 
 function ready(error, chicagojson, data) {
     if (error) throw error;
