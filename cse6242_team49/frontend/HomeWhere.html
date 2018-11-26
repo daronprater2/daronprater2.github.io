@@ -1,0 +1,144 @@
+<!-- ref: Josh Crozier "add form" https://stackoverflow.com/questions/23530064/how-to-make-label-and-input-appear-on-the-same-line-on-an-html-form -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>HomeWhere</title>
+        <script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+        <script type="text/javascript" src="../lib/d3-queue.v3.min.js"></script>
+        <script type="text/javascript" src="../lib/d3.tip.v0.6.3.js"></script>
+        <link rel="stylesheet" href="HomeWhere.css"/>
+    </head>
+    <body>
+        <div id="header" style="height:50px; text-align: center">
+            <p class="header">HomeWhere</p>
+        </div>
+        <h2 style="text-align: center">Welcome to Homwhere, the personalized recommendation system for finding a new neighborhood to live in Chicago.</h4>
+
+      <div class="row">
+        <div id="instructions" class="column">
+
+          <p>HomeWhere has two application Modes:</p>
+          <ul>
+            <li><strong>View By Metric</strong> - When in the view by metric mode, follow these steps:</li>
+            <ol>
+              <li>Select the Metric of interest from the preferences menu.</li>
+              <li>Colors on the map indicate whether a zip code is "Good" or "Bad" for that metric.</li>
+              <li>Hover over the zip codes to get all metrics on that zip code.</li>
+              <li>Move the slider in the Time menu to see how the zip codes look into the future.</li>
+            </ol>
+            <li><strong>View By Total</strong></li>
+            <ol>
+              <li>Move the sliders in each category based on your preferences.</li>
+              <li>The farther right the slider indicates the more you care about the metric.
+              For example, sliding Median Home Price all the way to the left indicates you aren't concerned about the home price for an area.</li>
+              <li>Click refresh map. Green zipcodes indicate you would like living in that area and red zip codes indicate you wouldn't like living in that area.</li>
+              <li>Move the slider in the Time menu to see how your preferred zip code would change in the future.</li>
+            </ol>
+          </ul>
+        </div>
+        <div class="column" >
+          <p>Color Scales for each Metric</p>
+          <ul>
+            <li>Median Home Price: <p style="display: inline; color: red">High Price</p> &#8594; <p style="display: inline; color: green">Low Price</p>
+            <li>Everyday Shopping: <p style="display: inline; color: red">Low volume shopping</p> &#8594; <p style="display: inline; color: green">High volume shopping</p>
+            <li>Nightlife/Social/Entertainment: <p style="display: inline; color: red">Low volume entertainment</p> &#8594; <p style="display: inline; color: green">High volume entertainment</p>
+            <li>Crime: <p style="display: inline; color: red">High crime rate</p> &#8594; <p style="display: inline; color: green">Low crime rate</p>
+            <li>Education: <p style="display: inline; color: red">Low education score</p> &#8594; <p style="display: inline; color: green">High education score</p>
+            <li>Park: <p style="display: inline; color: red">Low volume of parks</p> &#8594; <p style="display: inline; color: green">High volume of parks</p>
+            <li>Playground: <p style="display: inline; color: red">Low volume of playgrounds</p> &#8594; <p style="display: inline; color: green">High volume of playgrounds</p>
+            <li>Distance to Work: <p style="display: inline; color: red">Long distance to work</p> &#8594; <p style="display: inline; color: green">Short distance to work</p>
+            </ol>
+          </ul>
+        </div>
+      </div>
+
+
+
+        <div id="form" style="width: 28%; float:left">
+            <form>
+                <h3>Mode</h3>
+                <fieldset>
+                    <div class="form-group">
+                        <label for="mode">Application Mode: </label>
+                        <select name="mode" id="mode">
+                            <option value="viewByMetric" selected>View by Metric</option>
+                            <option value="viewByTotal">View by Total</option>
+                        </select>
+                    </div>
+                </fieldset>
+                <h3>Preferences</h3>
+                <fieldset id="fieldSetForTotal" style="display: none;">
+                    <div class="form-group">
+                        <label for="buyTime">Time To Buy A Home: </label>
+                        <input name="buyTime" type="range" min="1" max="5" value="3" step='1' class="slider" id="buyTime" />
+                    </div>
+                    <div class="form-group">
+                        <label for="crimeRate">Crime Rate: </label>
+                        <input name="crimeRate" type="range" min="1" max="5" value="3" step='1' class="slider" id="crimeRate"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Median Home Price: </label>
+                        <input name="price" type="range" min="1" max="5" value="3" step='1' class="slider" id="price"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="social">Social Opportunity: </label>
+                        <input name="social" type="range" min="1" max="5" value="3" step='1' class="slider" id="social"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="education">Child Education: </label>
+                        <input name="education" type="range" min="1" max="5" value="3" step='1' class="slider" id="education"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="park">Parks: </label>
+                        <input name="park" type="range" min="1" max="5" value="3" step='1' class="slider" id="park"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="playground">Playgrounds: </label>
+                        <input name="playground" type="range" min="1" max="5" value="3" step='1' class="slider" id="playground"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="shopping">Convenient Shopping: </label>
+                        <input name="shopping" type="range" min="1" max="5" value="3" step='1' class="slider" id="shopping"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="distance">Distance To Work: </label>
+                        <input name="distance" type="range" min="1" max="5" value="3" step='1' class="slider" id="distance"/>
+                    </div>
+
+                    <button type="button" id='refresh'>Refresh Map</button>
+
+                </fieldset>
+                <fieldset id="fieldSetForMetric">
+                        <label for="metric">Metric: </label>
+                        <select name="metric" id="metric">
+                        </select>
+                        <div id="workAt" style="display: none">
+                            <form action="" method="get">
+                                Work At (5 digit ZipCode):
+                                <input type="text" id="workZip" name="workZip" value="12311">
+                                <input type="submit" value="Submit" onclick='updateWorkAt(this.form);return false;'>
+                            </form>
+                        </div>
+                </fieldset>
+
+                <h3>Time</h3>
+                <fieldset>
+                    <div class="form-group">
+                        <label for="yearDelta">Years in the Future: </label>
+                        <input name="yearDelta" type="range" min="0" max="5" value="0" step='1' class="slider" id="yearDelta" />
+                        <div id="calculatedYear">2018</div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+
+        <div id="map" style="width: 50%; float:right">
+        </div>
+
+
+
+        <script type="text/javascript" src="HomeWhere.js"></script>
+    </body>
+</html>

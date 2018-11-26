@@ -3,6 +3,7 @@
 library(BBmisc)
 library(dplyr)
 library(forecast)
+library(ggplot2)
 
 # Define Functions ####
 
@@ -130,6 +131,8 @@ predict_five_years <- function(current_data, monthly_data, prediction_method,
   four_year_df <- data.frame()
   five_year_df <- data.frame()
   
+  accuracy <- data.frame("Zip" = c(), "R^2" = c())
+  
   for (zip in unique(current_data$ZipCode)) {
     
     print(zip)
@@ -149,7 +152,7 @@ predict_five_years <- function(current_data, monthly_data, prediction_method,
     
       b_lm <- lm(form, data = b)
       
-      # acc <- accuracy(b_lm)
+      r2 <- summary(b_lm)$r.squared
       # print(acc)
       
       one_year_pred <- (nrow(b) + 12) * b_lm$coefficients[[2]] + b_lm$coefficients[[1]]
@@ -180,6 +183,20 @@ predict_five_years <- function(current_data, monthly_data, prediction_method,
       three_year_pred <- arima_forecast[[4]][[36]]
       four_year_pred <- arima_forecast[[4]][[48]]
       five_year_pred <- arima_forecast[[4]][[60]]
+      
+      sse = 0
+      sst = 0
+      a = mean(b_ts)
+      
+      for(i in 1:length(fit$residuals)){
+        
+        sse = sse + fit$residuals[i]^2
+        cur = ((b_ts[i] + fit$residuals[i]) - a)^2
+        sst = sst + cur
+        
+      }
+      
+      r2 = 1 - (sse/sst)
       
     }
     
@@ -237,6 +254,9 @@ predict_five_years <- function(current_data, monthly_data, prediction_method,
                                   SquareMiles = b$SquareMiles[1])
     
     five_year_df <- rbind(five_year_df, prediction_df_5)
+    
+    curr_acc <- data.frame("Zip" = zip, "R^2" = r2)
+    accuracy <- rbind(accuracy, curr_acc)
     
   }
   
@@ -300,7 +320,9 @@ predict_five_years <- function(current_data, monthly_data, prediction_method,
   five_year_pred_df <- rbind(current_data,
                              pred_dfs)
   
-  return(five_year_pred_df)
+  df_list <- list(five_year_pred_df, accuracy)
+  
+  return(df_list)
   
 }
 
@@ -335,7 +357,7 @@ current_period_median_prices <- current_period_median_prices[c('ZipCode',
                                                                'Metric')]
 
 
-all_years_median_price_df <- predict_five_years(current_period_median_prices, median_listing_df,
+home_price_list <- predict_five_years(current_period_median_prices, median_listing_df,
                                                 prediction_method = 'arima', datapoint = 'Median.Listing.Price',
                                                 category = 'Median Home Price',
                                                 metric = 'Median Home Price in Dollars',
@@ -345,7 +367,26 @@ all_years_median_price_df <- predict_five_years(current_period_median_prices, me
                                                 log_normal = FALSE,
                                                 arima_type = 'random_walk_drift')
 
+home_price_list_lm <- predict_five_years(current_period_median_prices, median_listing_df,
+                                      prediction_method = 'lm', datapoint = 'Median.Listing.Price',
+                                      category = 'Median Home Price',
+                                      metric = 'Median Home Price in Dollars',
+                                      met_range = c(1,0),
+                                      start = c(2012, 5),
+                                      end = c(2018, 9),
+                                      log_normal = FALSE,
+                                      arima_type = 'random_walk_drift')
 
+all_years_median_price_df <- home_price_list[[1]]
+
+home_price_accuracy_arima <- home_price_list[[2]]
+home_price_accuracy_arima$model_type <- 'ARIMA'
+
+home_price_accuracy_lm <- home_price_list_lm[[2]]
+home_price_accuracy_lm$model_type <- 'LM'
+
+home_price_accuracy <- rbind(home_price_accuracy_arima, home_price_accuracy_lm)
+home_price_accuracy$Zip <- as.factor(home_price_accuracy$Zip)
 
 
 
@@ -375,7 +416,7 @@ current_period_nightlife <- current_period_nightlife[c('ZipCode',
                                                                'Metric')]
 
 
-all_years_nightlife_df <- predict_five_years(current_period_nightlife, agg_nightlife_df,
+nightlife_list <- predict_five_years(current_period_nightlife, agg_nightlife_df,
                                                 prediction_method = 'arima', datapoint = 'LicenseCount',
                                                 category = 'Nightlife/Social/Entertainment',
                                                 metric = 'Count of newly issued and renewed licenses for nightlife/social/entertainment businesses',
@@ -385,6 +426,25 @@ all_years_nightlife_df <- predict_five_years(current_period_nightlife, agg_night
                                                 log_normal = TRUE,
                                                 arima_type = 'optimal')
 
+nightlife_list_lm <- predict_five_years(current_period_nightlife, agg_nightlife_df,
+                                     prediction_method = 'lm', datapoint = 'LicenseCount',
+                                     category = 'Nightlife/Social/Entertainment',
+                                     metric = 'Count of newly issued and renewed licenses for nightlife/social/entertainment businesses',
+                                     met_range = c(0,1),
+                                     start = c(2002, 1),
+                                     end = c(2018, 10),
+                                     log_normal = TRUE,
+                                     arima_type = 'optimal')
+
+all_years_nightlife_df <- nightlife_list[[1]]
+
+nightlife_accuracy_arima <- nightlife_list[[2]]
+nightlife_accuracy_arima$model_type <- 'ARIMA'
+
+nightlife_accuracy_lm <- nightlife_list_lm[[2]]
+nightlife_accuracy_lm$model_type <- 'LM'
+
+nightlife_accuracy <- rbind(nightlife_accuracy_arima, nightlife_accuracy_lm)
 
 
 
@@ -412,7 +472,7 @@ current_period_shopping <- current_period_shopping[c('ZipCode',
                                                        'Metric')]
 
 
-all_years_shopping_df <- predict_five_years(current_period_shopping, agg_shopping_df,
+shopping_list <- predict_five_years(current_period_shopping, agg_shopping_df,
                                              prediction_method = 'arima', datapoint = 'LicenseCount',
                                              category = 'Everyday Shopping',
                                              metric = 'Count of newly issued and renewed licenses for everyday shopping businesses',
@@ -422,7 +482,25 @@ all_years_shopping_df <- predict_five_years(current_period_shopping, agg_shoppin
                                              log_normal = TRUE,
                                              arima_type = 'optimal')
 
+shopping_list_lm <- predict_five_years(current_period_shopping, agg_shopping_df,
+                                    prediction_method = 'lm', datapoint = 'LicenseCount',
+                                    category = 'Everyday Shopping',
+                                    metric = 'Count of newly issued and renewed licenses for everyday shopping businesses',
+                                    met_range = c(0,1),
+                                    start = c(2002, 1),
+                                    end = c(2018, 10),
+                                    log_normal = TRUE,
+                                    arima_type = 'optimal')
 
+all_years_shopping_df <- shopping_list[[1]]
+
+shopping_accuracy_arima <- shopping_list[[2]]
+shopping_accuracy_arima$model_type <- 'ARIMA'
+
+shopping_accuracy_lm <- shopping_list_lm[[2]]
+shopping_accuracy_lm$model_type <- 'LM'
+
+shopping_accuracy <- rbind(shopping_accuracy_arima, shopping_accuracy_lm)
 
 
 all_data <- rbind(all_years_median_price_df,
@@ -433,4 +511,12 @@ all_data <- rbind(all_years_median_price_df,
 write.csv(all_data, file = 'C:\\Users\\bzmcc\\Documents\\CSE6242\\Project\\nightlife_shopping_homeprices.csv',
           row.names = FALSE)
 
+shopping_r2_chart <- ggplot(data = shopping_accuracy, aes(Zip, R.2)) + geom_point(aes(color = factor(model_type))) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ggtitle('R^2 for Shopping Dataset ARIMA vs Linear Model')
+
+nightlife_r2_chart <- ggplot(data = nightlife_accuracy, aes(Zip, R.2)) + geom_point(aes(color = factor(model_type))) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ggtitle('R^2 for Nightlife and Entertainment Dataset ARIMA vs Linear Model')
+
+home_price_r2_chart <- ggplot(data = home_price_accuracy, aes(Zip, R.2)) + geom_point(aes(color = factor(model_type))) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ggtitle('R^2 for Median Home Price Dataset ARIMA vs Linear Model')
 
