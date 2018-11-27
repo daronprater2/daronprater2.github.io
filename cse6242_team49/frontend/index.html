@@ -1,0 +1,183 @@
+<!-- ref: Josh Crozier "add form" https://stackoverflow.com/questions/23530064/how-to-make-label-and-input-appear-on-the-same-line-on-an-html-form -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>HomeWhere</title>
+        <script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+        <script type="text/javascript" src="../lib/d3-queue.v3.min.js"></script>
+        <script type="text/javascript" src="../lib/d3.tip.v0.6.3.js"></script>
+        <link rel="stylesheet" href="HomeWhere.css"/>
+    </head>
+    <body>
+        <div id="header" style="height:50px; width: 40%">
+          <p class="header">HomeWhere</p>
+        </div>
+
+        <button class="collapsible" style="text-align: center;">Directions</button>
+        <div class="content">
+          <div class="row">
+            <div class="column">
+              <p>HomeWhere has two application Modes:</p>
+              <ul>
+                <li><strong>View By Metric</strong> - When in the view by metric mode, follow these steps:</li>
+                <ol>
+                  <li>Select the Metric of interest from the preferences menu.</li>
+                  <li>Colors on the map indicate whether a zip code is "Good" or "Bad" for that metric.
+                  For example, if you are looking at the median home price metric and a zip code is colored dark red
+                  then the median home prices in that zip code are high.</li>
+                  <li>Move the slider in the Time menu to see how the zip codes look into the future.</li>
+                </ol>
+                <br>
+                <li><strong>View By Total</strong> - When in the view by total mode, follow these steps:</li>
+                <ol>
+                  <li>Answer the questions</li>
+                  <li>HomeWhere then finds the zip codes you would like living in the most based on your answers.
+                  A zip code shaded green means HomeWhere thinks you would like living in that zip code. Red means the opposite.</li>
+                  <li>Move the sliders in each category to adjust your preferences.</li>
+                  <li>The farther right the slider indicates the more you care about the metric.
+                  For example, sliding Median Home Price all the way to the left indicates you aren't concerned about the home price for an area and would be ok with paying high home prices.</li>
+                  <li>Click refresh map.</li>
+                  <li>Move the slider in the Time menu to see how your preferred zip code would change in the future.</li>
+                </ol>
+              </ul>
+            </div>
+            <div class="column">
+              <p><strong>Color Scales for each Metric</strong></p>
+              <ul>
+                <li>Median Home Price: <p style="display: inline; color: red">High Price</p> &#8594; <p style="display: inline; color: green">Low Price</p>
+                <li>Everyday Shopping: <p style="display: inline; color: red">Low volume shopping</p> &#8594; <p style="display: inline; color: green">High volume shopping</p>
+                <li>Nightlife/Social/Entertainment: <p style="display: inline; color: red">Low volume entertainment</p> &#8594; <p style="display: inline; color: green">High volume entertainment</p>
+                <li>Crime: <p style="display: inline; color: red">High crime rate</p> &#8594; <p style="display: inline; color: green">Low crime rate</p>
+                <li>Education: <p style="display: inline; color: red">Low education score</p> &#8594; <p style="display: inline; color: green">High education score</p>
+                <li>Park: <p style="display: inline; color: red">Low volume of parks</p> &#8594; <p style="display: inline; color: green">High volume of parks</p>
+                <li>Playground: <p style="display: inline; color: red">Low volume of playgrounds</p> &#8594; <p style="display: inline; color: green">High volume of playgrounds</p>
+                <li>Distance to Work: <p style="display: inline; color: red">Long distance to work</p> &#8594; <p style="display: inline; color: green">Short distance to work</p>
+                </ol>
+              </ul>
+              <br>
+              <br>
+              <p><strong>Additional Features and Notes</strong></p>
+              <ul>
+                <li>Zip Code Statistics - Hover over a zip code to see the statistics for that zip code.</li>
+                <li>Zip code 12311 is a combination of zip codes 60601, 60602, 60603, 60604, 60605, and 60611.</li>
+                <li>Zip code 6761 is a combination of zip codes 60606, 60607, 60661.</li>
+                <li>Moving the years into the future slider makes predictions for each zip for the years ahead specified.</li>
+
+              </ul>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="form" style="width: 28%; float:left">
+            <form>
+                <h3>Mode</h3>
+                <fieldset>
+                    <div class="form-group">
+                        <label for="mode">Application Mode: </label>
+                        <select name="mode" id="mode">
+                            <option value="viewByMetric" selected>View by Metric</option>
+                            <option value="viewByTotal">View by Total</option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                <h3>Preferences</h3>
+
+                <div id="metricRankingSection" style="display: none;">
+                    <fieldset>
+                        <div class="form-group">
+                            <label for="buyTime">Time To Buy A Home: </label>
+                            <input name="buyTime" type="range" min="1" max="5" value="3" step='1' class="slider" id="buyTime" />
+                        </div>
+                        <div class="form-group">
+                            <label for="crimeRate">Crime Rate: </label>
+                            <input name="crimeRate" type="range" min="1" max="5" value="3" step='1' class="slider" id="crimeRate"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Median Home Price: </label>
+                            <input name="price" type="range" min="1" max="5" value="3" step='1' class="slider" id="price"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="social">Social Opportunity: </label>
+                            <input name="social" type="range" min="1" max="5" value="3" step='1' class="slider" id="social"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="education">Child Education: </label>
+                            <input name="education" type="range" min="1" max="5" value="3" step='1' class="slider" id="education"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="park">Parks: </label>
+                            <input name="park" type="range" min="1" max="5" value="3" step='1' class="slider" id="park"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="playground">Playgrounds: </label>
+                            <input name="playground" type="range" min="1" max="5" value="3" step='1' class="slider" id="playground"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="shopping">Convenient Shopping: </label>
+                            <input name="shopping" type="range" min="1" max="5" value="3" step='1' class="slider" id="shopping"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="distance">Distance To Work: </label>
+                            <input name="distance" type="range" min="1" max="5" value="3" step='1' class="slider" id="distance"/>
+                            <div id="workAt2" style="display: block">
+                                <form action="" method="get">
+                                    Work At (5 digit ZipCode):
+                                    <input type="text" id="workZip2" name="workZip2" value="12311">
+                                </form>
+                            </div>
+                        </div>
+                        <button type="button" id='refresh' onclick='updateMap();return false;'>Refresh Map</button>
+                    </fieldset>
+                </div>
+
+                <div id="individualMetricSection">
+                    <fieldset>
+                        <label for="metric">Metric: </label>
+                        <select name="metric" id="metric">
+                        </select>
+                        <div id="workAt" style="display: none">
+                            <form action="" method="get">
+                                Work At (5 digit ZipCode):
+                                <input type="text" id="workZip" name="workZip" value="12311">
+                                <input type="submit" value="Submit" onclick='updateWorkAt();return false;'>
+                            </form>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div id="questionsSection" style="display: none;">
+                    <fieldset>
+                        <p>Answer a few questions to tell us about yourself.</p>
+                        <div id="questions">
+
+                        </div>
+                        <button id="wizardNext">Next</button>
+                    </fieldset>
+                </div>
+
+                <div id="timeSection">
+                    <h3>Time</h3>
+                    <fieldset>
+                        <div class="form-group">
+                            <label for="yearDelta">Years in the Future: </label>
+                            <input name="yearDelta" type="range" min="0" max="5" value="0" step='1' class="slider" id="yearDelta" />
+                            <div id="calculatedYear">2018</div>
+                        </div>
+                    </fieldset>
+                </div>
+            </form>
+        </div>
+
+        <div id="map" style="width: 30%; float:left">
+        </div>
+
+
+
+        <script type="text/javascript" src="HomeWhere.js"></script>
+        <script type="text/javascript" src="directions.js"></script>
+    </body>
+</html>
